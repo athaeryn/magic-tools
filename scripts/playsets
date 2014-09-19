@@ -1,0 +1,3 @@
+#!/bin/bash
+
+uniq -c < all.txt | sort -nr | awk '{if ($1 >= 4) print}'
