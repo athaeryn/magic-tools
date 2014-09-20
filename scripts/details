@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require "sqlite3"
+
+db = SQLite3::Database.new "cards.db"
+query = db.prepare "SELECT * FROM cards WHERE name=?"
+
+ARGF.each do |line|
+  begin
+    puts query.execute(line.chomp).next.join("|")
+  rescue
+    puts line
+    exit
+  end
+end
