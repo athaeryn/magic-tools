@@ -7,11 +7,11 @@ require "sqlite3"
 db = SQLite3::Database.new "cards.db"
 query = db.prepare "SELECT * FROM cards WHERE name=?"
 
-ARGF.each do |line|
+ARGF.each do |card|
   begin
-    puts query.execute(line.chomp).next.join("|")
+    puts query.execute(card.chomp).next.join("|")
   rescue
-    puts line
+    puts "Could not find #{card}"
     exit
   end
 end
