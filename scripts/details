@@ -9,9 +9,9 @@ query = db.prepare "SELECT * FROM cards WHERE name=?"
 
 ARGF.each do |card|
   begin
-    puts query.execute(card.chomp).next.join("|")
+    puts query.execute(card.gsub(/\s*$/, "")).next.join("|")
   rescue
-    puts "Could not find #{card}"
+    puts "Could not find #{card.inspect}"
     exit
   end
 end
