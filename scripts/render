@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+html = <<-HTML
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="wrapper">
+HTML
+
+def make_img(card)
+  # TODO: encode card for URL
+  safe_name = card.chomp
+  "<img src=\"http://mtgimage.com/card/#{safe_name}.jpg\">\n"
+end
+
+ARGF.each do |card|
+  html += make_img(card) if card.chomp.length > 0
+end
+
+html += "    </div>\n  </body>\n</html>"
+
+puts html
