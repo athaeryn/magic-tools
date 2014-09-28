@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require "open-uri"
+require "json"
+require "sqlite3"
+
+db = SQLite3::Database.new "cards.db"
+
+# cards = JSON.parse(open("http://mtgjson.com/json/AllCards.json").read).values
+cards = JSON.parse(File.read("~/Downloads/AllCards.json")).values
+
+columns = {
+  name:       :text,
+  manaCost:   :text,
+  cmc:        :int,
+  colors:     :text,
+  type:       :text,
+  supertypes: :text,
+  types:      :text,
+  subtypes:   :text,
+  text:       :text,
+  power:      :int,
+  toughness:  :int,
+  layout:     :text,
+  names:      :text,
+  loyalty:    :int,
+  hand:       :int,
+  life:       :int,
+  imageName:  :text
+}
+
+
+db.execute "DROP TABLE IF EXISTS cards"
+
+db.execute <<-SQL
+CREATE TABLE cards (
+  #{ columns.map { |col, type| "#{col} #{type}" }.to_a.join(", ") }
+);
+SQL
+
+
+query = db.prepare <<-SQL
+INSERT INTO cards(#{columns.keys.join(",")})
+values(#{"?," * (columns.keys.length - 1)}?);
+SQL
+
+
+cards.each do |card|
+  values = columns.keys.map do |attr|
+    value = card[attr.to_s] || nil
+    value = value.join("|") if value.respond_to? :join
+    value
+  end
+  begin
+    query.execute(values)
+  rescue
+    puts "Error with " + card["name"]
+  end
+end
