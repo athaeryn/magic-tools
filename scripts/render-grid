@@ -5,6 +5,26 @@ html = <<-HTML
 <html>
   <head>
     <link rel="stylesheet" href="styles.css">
+    <style>
+      html, body {
+        background-color: #555;
+        margin: 0;
+      }
+
+      .wrapper {
+        margin: 0 auto;
+        padding: 50px 10px;
+        width: 1310px;
+      }
+
+      img {
+        width: 140px;
+        margin: 10px;
+      }
+      img:hover {
+        -webkit-transform: scale(1.5);
+      }
+    </style>
   </head>
   <body>
     <div class="wrapper">
