@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require "sqlite3"
 
-db = SQLite3::Database.new "cards.db"
+db = SQLite3::Database.new ENV["CARD_DB_PATH"]
 query = db.prepare "SELECT * FROM cards WHERE name=?"
 
 ARGF.each do |card|

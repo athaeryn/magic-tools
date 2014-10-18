@@ -6,7 +6,7 @@ require "open-uri"
 require "json"
 require "sqlite3"
 
-db = SQLite3::Database.new "cards.db"
+db = SQLite3::Database.new ENV["CARD_DB_PATH"]
 
 # cards = JSON.parse(open("http://mtgjson.com/json/AllCards.json").read).values
 cards = JSON.parse(File.read("~/Downloads/AllCards.json")).values
