@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+QUERY="$@"
+
+if [[ -z "$QUERY" ]]; then
+  echo "Usage example:"
+  echo "  $0 \"type LIKE 'Legend%' AND type LIKE '%Creature%' AND cmc <= 3\""
+  exit 1
+fi
+
+build_query() {
+  echo "SELECT name FROM cards WHERE $QUERY"
+}
+
+search() {
+  local query=$(build_query)
+  sqlite3 "$CARD_DB_PATH" "$query"
+}
+
+search
