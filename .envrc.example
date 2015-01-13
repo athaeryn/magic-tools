@@ -1,1 +1,2 @@
 export CARD_DB_PATH=/path/to/cards.db
+export CARD_PATH=/path/to/cards/all.txt

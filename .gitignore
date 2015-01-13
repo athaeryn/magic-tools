@@ -2,3 +2,5 @@ view/*
 !view/styles.css
 cards.db
 .envrc
+
+AllSets.json
