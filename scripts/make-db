@@ -2,14 +2,38 @@
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-require "open-uri"
 require "json"
 require "sqlite3"
 
-db = SQLite3::Database.new ENV["CARD_DB_PATH"]
+begin
+  CARD_DB = ENV.fetch("CARD_DB_PATH")
+rescue
+  puts "Ensure CARD_DB_PATH is set in your environment."
+  exit 1
+end
 
-# cards = JSON.parse(open("http://mtgjson.com/json/AllCards.json").read).values
-cards = JSON.parse(File.read("~/Downloads/AllCards.json")).values
+begin
+  sets = JSON.parse(File.read("./AllSets.json"))
+rescue
+  puts "Ensure you have downloaded AllSets.json from http://mtgjson.com/"
+  puts "It should be located in the directory where you run this script."
+  exit 1
+end
+
+cards = sets.each_with_object({}) do |(set, data), all_cards|
+  all_cards.tap do |all|
+    data["cards"].each do |c|
+      all[c["name"]] ||= c
+      all[c["name"]]["sets"] ||= []
+      all[c["name"]]["sets"] << set
+    end
+  end
+end.values
+
+puts "Backing up #{CARD_DB}..."
+puts `cp #{CARD_DB} #{CARD_DB}.bak`
+
+db = SQLite3::Database.new(CARD_DB)
 
 columns = {
   name:       :text,
@@ -28,11 +52,11 @@ columns = {
   loyalty:    :int,
   hand:       :int,
   life:       :int,
-  imageName:  :text
+  imageName:  :text,
+  sets:       :text
 }
 
-
-db.execute "DROP TABLE IF EXISTS cards"
+db.execute("DROP TABLE IF EXISTS cards")
 
 db.execute <<-SQL
 CREATE TABLE cards (
@@ -40,22 +64,20 @@ CREATE TABLE cards (
 );
 SQL
 
-
 query = db.prepare <<-SQL
 INSERT INTO cards(#{columns.keys.join(",")})
 values(#{"?," * (columns.keys.length - 1)}?);
 SQL
 
-
 cards.each do |card|
   values = columns.keys.map do |attr|
     value = card[attr.to_s] || nil
-    value = value.join("|") if value.respond_to? :join
+    value = value.join(",") if value.respond_to?(:join)
     value
   end
   begin
     query.execute(values)
   rescue
-    puts "Error with " + card["name"]
+    puts "Error with #{card["name"]}"
   end
 end
