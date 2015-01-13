@@ -1,0 +1,124 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require "erb"
+require "sqlite3"
+
+db = SQLite3::Database.new ENV["CARD_DB_PATH"]
+query = db.prepare "SELECT * FROM cards WHERE name=?"
+
+columns = %w(name manaCost cmc colors type supertypes types subtypes text power toughness layout names loyalty hand life imageName sets)
+
+cards = ARGF.map do |card|
+  begin
+    info = query.execute(card.gsub(/\s*$/, "")).next
+    Hash[columns.zip(info)]
+  rescue
+    puts "Could not find #{card.inspect}"
+    exit
+  end
+end
+
+total_count = cards.count
+
+def histogram(items)
+  hist = Hash.new(0)
+  items.each do |item|
+    hist[item] += 1 if item
+  end
+  hist
+end
+
+manacosts = histogram(cards.map do |card|
+  if card["manaCost"]
+    card["manaCost"].split(/[\{\}]+/).select { |x| x =~ /[WUBRG]/ }.flatten
+  end
+end.flatten)
+
+types = Hash.new
+types["Creatures"] = cards.select { |x| x["types"].include? "Creature" }
+cards -= types["Creatures"]
+
+types["Lands"] = cards.select { |x| x["types"].include? "Land" }
+cards -= types["Lands"]
+
+types["Other Spells"] = cards
+
+html = <<-HTML
+<!doctype html>
+<html>
+  <head>
+    <style>
+      html, body {
+        background-color: #555;
+        margin: 0;
+        font-family: helvetica;
+        color: white;
+      }
+
+      a {
+        color: #04a1ec;
+      }
+
+      ul {
+        list-style: none;
+      }
+
+      .wrapper {
+        margin: 0 auto;
+        padding: 50px 10px;
+        width: 1310px;
+      }
+
+      #hovercard {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <% types.each do |name, cards| %>
+        <h4><%= name %> (<%= cards.count %>)</h4>
+        <ul>
+          <% histogram(cards).each do |card, count| %>
+            <li>
+              <%= count.inspect %>x <a href=#0><%= card["name"].chomp %></a>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+      <h4><%= total_count %> cards</h4>
+      <img id="hovercard" width="250" height="340">
+      <h4>Mana symbols:</h4>
+      <ul>
+        <% manacosts.each do |color, count| %>
+          <li><%= color %>: <%= count %></li>
+        <% end %>
+      </ul>
+    </div>
+
+    <script>
+      var cards       = document.querySelectorAll("a"),
+          hovercardEl = document.getElementById("hovercard");
+
+      Array.prototype.forEach.call(cards, function(cardEl) {
+        cardEl.addEventListener("mouseenter", hoverCard);
+      });
+
+      function makeURL(cardName) {
+        return "http://mtgimage.com/card/" + cardName + ".jpg";
+      }
+
+      function hoverCard(event) {
+        hovercardEl.src = makeURL(event.target.innerText);
+      }
+    </script>
+  </body>
+</html>
+HTML
+
+b = binding
+puts ERB.new(html).result(b)

@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require "open-uri"
+
 html = <<-HTML
 <!doctype html>
 <html>
@@ -18,11 +20,8 @@ html = <<-HTML
       }
 
       img {
-        width: 140px;
-        margin: 10px;
-      }
-      img:hover {
-        -webkit-transform: scale(1.5);
+        width: 220px;
+        margin: 25px 50px;
       }
     </style>
   </head>
@@ -31,15 +30,11 @@ html = <<-HTML
 HTML
 
 def make_img(card)
-  # TODO: encode card for URL
-  safe_name = card.chomp
-  "<img src=\"http://mtgimage.com/card/#{safe_name}.jpg\">\n"
+  "<img src=\"http://mtgimage.com/card/#{URI::encode(card.chomp)}.jpg\" width=220px height=312px>\n"
 end
 
 ARGF.each do |card|
   html += make_img(card) if card.chomp.length > 0
 end
 
-html += "    </div>\n  </body>\n</html>"
-
-puts html
+puts html + "    </div>\n  </body>\n</html>"
