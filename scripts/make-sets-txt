@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+require "fileutils"
+require "lib/get_sets"
+
+begin
+  SETS_TXT_PATH = ENV.fetch("SETS_TXT_PATH")
+rescue
+  puts "Ensure SETS_TXT_PATH is set in your environment."
+  exit 1
+end
+
+sets = Magic::get_sets()
+
+if !File.exists?(SETS_TXT_PATH)
+  FileUtils.mkdir(SETS_TXT_PATH)
+end
+
+sets.each do |set, data|
+  cards = data["cards"].map { |c| c["name"] }.join("\n")
+  File.write(File.join(SETS_TXT_PATH, "#{set}.txt"), cards)
+end

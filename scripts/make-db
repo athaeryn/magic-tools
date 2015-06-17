@@ -2,8 +2,8 @@
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-require "json"
 require "sqlite3"
+require "lib/get_sets"
 
 begin
   CARD_DB = ENV.fetch("CARD_DB_PATH")
@@ -12,13 +12,7 @@ rescue
   exit 1
 end
 
-begin
-  sets = JSON.parse(File.read("./AllSets.json"))
-rescue
-  puts "Ensure you have downloaded AllSets.json from http://mtgjson.com/"
-  puts "It should be located in the directory where you run this script."
-  exit 1
-end
+sets = Magic::get_sets()
 
 cards = sets.each_with_object({}) do |(set, data), all_cards|
   all_cards.tap do |all|

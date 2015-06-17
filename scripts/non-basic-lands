@@ -1,0 +1,3 @@
+#!/bin/bash
+
+details | grep '|Land|' | remove-basic-lands

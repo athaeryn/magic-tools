@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sed -E '/^(Forest|Swamp|Island|Mountain|Plains)/d'
